@@ -16,6 +16,10 @@ export const App = () => {
 
   useEffect(() => {
     async function getImages() {
+      if (!query) {
+        return;
+      }
+
       if (query.split('/')[1].trim().length > 0) {
         try {
           setIsLoading(true);
