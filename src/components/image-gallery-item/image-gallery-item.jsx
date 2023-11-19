@@ -1,35 +1,28 @@
-import { Component } from 'react';
+import { useState } from 'react';
 import { GalleryImage, GalleryItem } from './image-gallery-item.styled';
 import { Modal } from 'components/modal/modal';
 
-export class ImageGalleryItem extends Component {
-  state = {
-    isModalOpen: false,
-  };
+export const ImageGalleryItem = ({
+  smallImageUrl,
+  largeImageUrl,
+  description,
+}) => {
+  const [isModalOpen, setIsModalOpen] = useState(false);
 
-  openModal = () => {
-    this.setState({ isModalOpen: true });
-  };
+  const openModal = () => setIsModalOpen(true);
+  const closeModal = () => setIsModalOpen(false);
 
-  closeModal = () => {
-    this.setState({ isModalOpen: false });
-  };
-
-  render() {
-    const { isModalOpen } = this.state;
-    const { smallImageUrl, largeImageUrl, description } = this.props;
-    return (
-      <>
-        <GalleryItem onClick={this.openModal}>
-          <GalleryImage src={smallImageUrl} alt={description} />
-        </GalleryItem>
-        <Modal
-          isModalOpen={isModalOpen}
-          imageUrl={largeImageUrl}
-          description={description}
-          closeModal={this.closeModal}
-        ></Modal>
-      </>
-    );
-  }
-}
+  return (
+    <>
+      <GalleryItem onClick={openModal}>
+        <GalleryImage src={smallImageUrl} alt={description} />
+      </GalleryItem>
+      <Modal
+        isModalOpen={isModalOpen}
+        imageUrl={largeImageUrl}
+        description={description}
+        closeModal={closeModal}
+      ></Modal>
+    </>
+  );
+};

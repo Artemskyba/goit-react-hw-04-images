@@ -1,4 +1,3 @@
-import { Component } from 'react';
 import { SearchForm } from '../searchbar/searchbar';
 import { fetchImages } from '../api';
 import { ImageGallery } from '../image-gallery/image-gallery';
@@ -6,69 +5,57 @@ import { Button } from '../load-more-button/button';
 import { LineWave } from 'react-loader-spinner';
 import { GlobalStyle } from '../global-styles';
 import { AppContainer, Loader } from './App.styled';
+import { useEffect, useState } from 'react';
 
-export class App extends Component {
-  state = {
-    images: [],
-    query: '',
-    page: 1,
-    isLoading: false,
-    loadMore: false,
-  };
+export const App = () => {
+  const [images, setImages] = useState([]);
+  const [query, setQuery] = useState(``);
+  const [page, setPage] = useState(1);
+  const [isLoading, setIsLoading] = useState(false);
+  const [loadMore, setLoadMore] = useState(false);
 
-  async componentDidUpdate(prevProps, prevState) {
-    const { images, query, page } = this.state;
-    if (
-      (prevState.query !== query || prevState.page !== page) &&
-      query.split('/')[1].trim().length > 0
-    ) {
-      try {
-        this.setState({ isLoading: true });
-        const fetchedImages = await fetchImages(query.split('/')[1], page);
-        const { hits, totalHits } = fetchedImages;
-        this.setState({
-          images: [...images, ...hits],
-          loadMore: page < Math.ceil(totalHits / 12),
-        });
-      } catch (error) {
-      } finally {
-        this.setState({
-          isLoading: false,
-        });
+  useEffect(() => {
+    async function getImages() {
+      if (query.split('/')[1].trim().length > 0) {
+        try {
+          setIsLoading(true);
+          const fetchedImages = await fetchImages(query.split('/')[1], page);
+          const { hits, totalHits } = fetchedImages;
+          setImages(prevImages => [...prevImages, ...hits]);
+          setLoadMore(page < Math.ceil(totalHits / 12));
+        } catch (error) {
+        } finally {
+          setIsLoading(false);
+        }
+        return;
       }
+      setLoadMore(false);
     }
-  }
+    getImages();
+  }, [query, page]);
 
-  handleSubmit = searchQuery => {
-    this.setState({
-      images: [],
-      query: `${Date.now()}/${searchQuery}`,
-      page: 1,
-    });
+  const handleSubmit = searchQuery => {
+    setImages([]);
+    setQuery(`${Date.now()}/${searchQuery}`);
+    setPage(1);
   };
 
-  changePage = () => {
-    this.setState(prevState => ({
-      page: prevState.page + 1,
-      loadMore: false,
-    }));
+  const changePage = () => {
+    setPage(prevPage => prevPage + 1);
+    setLoadMore(false);
   };
 
-  render() {
-    const { images, loadMore, isLoading } = this.state;
-
-    return (
-      <AppContainer>
-        <SearchForm onSubmit={this.handleSubmit} />
-        <ImageGallery images={images} />
-        {isLoading && (
-          <Loader>
-            <LineWave width="250" height="250" />
-          </Loader>
-        )}
-        {loadMore && <Button loadMore={this.changePage} />}
-        <GlobalStyle />
-      </AppContainer>
-    );
-  }
-}
+  return (
+    <AppContainer>
+      <SearchForm onSubmit={handleSubmit} />
+      <ImageGallery images={images} />
+      {isLoading && (
+        <Loader>
+          <LineWave width="250" height="250" />
+        </Loader>
+      )}
+      {loadMore && <Button loadMore={changePage} />}
+      <GlobalStyle />
+    </AppContainer>
+  );
+};
